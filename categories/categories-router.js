@@ -1,32 +1,31 @@
 const path = require('path')
 const express = require('express')
 const xss = require('xss')
-const FoldersService = require('./folders-service')
-
-const foldersRouter = express.Router()
+const CategoriesService = require('./categories-service')
+const categoriesRouter = express.Router()
 const jsonParser = express.json()
 
-const serializeFolder = folder => ({
-    id: folder.id,
-    name: xss(folder.name),
-    modified: folder.modified
+const serializeCategory = category => ({
+    id: category.id,
+    name: xss(category.name),
+    modified: category.modified
 })
 
-foldersRouter
+categoriesRouter
     .route('/')
     .get((req, res, next) => {
         const knexInstance = req.app.get('db')
-        FoldersService.getAll(knexInstance)
-            .then(folders => {
+        CategoriesService.getAll(knexInstance)
+            .then(categories => {
                 res.json(folders.map(serializeFolder))
             })
             .catch(next)
     })
     .post(jsonParser, (req, res, next) => {
         const { name } = req.body
-        const newFolder = { name }
+        const newCategory = { name }
 
-        for (const [key, value] of Object.entries(newFolder)) {
+        for (const [key, value] of Object.entries(newCategory)) {
             if (value == null) {
                 return res.status(400).json({
                     error: { message: `Missing '${key}' in request body` }
@@ -34,44 +33,44 @@ foldersRouter
             }
         }
 
-        FoldersService.insert(
+        CategoriesService.insert(
             req.app.get('db'),
-            newFolder
+            newCategory
         )
-            .then(folder => {
+            .then(category => {
                 res
                     .status(201)
-                    .location(path.posix.join(req.originalUrl, `/${folder.id}`))
-                    .json(serializeFolder(folder))
+                    .location(path.posix.join(req.originalUrl, `/${category.id}`))
+                    .json(serializeCategory(category))
             })
             .catch(next)
     })
 
-foldersRouter
-    .route('/:folder_id')
+categoriesRouter
+    .route('/:category_id')
     .all((req, res, next) => {
-        FoldersService.getById(
+        CategoriesService.getById(
             req.app.get('db'),
-            req.params.folder_id
+            req.params.category_id
         )
-            .then(folder => {
-                if (!folder) {
+            .then(category => {
+                if (!category) {
                     return res.status(404).json({
-                        error: { message: `Folder doesn't exist` }
+                        error: { message: `Category doesn't exist` }
                     })
                 }
-                res.folder = folder
+                res.category = category
                 next()
             })
             .catch(next)
     })
     .get((req, res, next) => {
-        res.json(serializeFolder(res.folder))
+        res.json(serializeCategory(res.category))
     })
     .delete((req, res, next) => {
-        FoldersService.deleteFolder(
+        CategoriesService.deleteCategory(
             req.app.get('db'),
-            req.params.folder_id
+            req.params.category_id
         )
             .then(numRowsAffected => {
                 res.status(204).end()
@@ -80,9 +79,9 @@ foldersRouter
     })
     .patch(jsonParser, (req, res, next) => {
         const { name } = req.body
-        const folderToUpdate = { name }
+        const categoryToUpdate = { name }
 
-        const numberOfValues = Object.values(folderToUpdate).filter(Boolean).length
+        const numberOfValues = Object.values(categoryToUpdate).filter(Boolean).length
         if (numberOfValues === 0)
             return res.status(400).json({
                 error: {
@@ -90,10 +89,10 @@ foldersRouter
                 }
             })
 
-        FoldersService.updateFolder(
+        CategoriesService.updateCategory(
             req.app.get('db'),
-            req.params.folder_id,
-            folderToUpdate
+            req.params.category_id,
+            categoryToUpdate
         )
             .then(numRowsAffected => {
                 res.status(204).end()
@@ -101,4 +100,4 @@ foldersRouter
             .catch(next)
     })
 
-module.exports = foldersRouter
+module.exports = categoriesRouter
