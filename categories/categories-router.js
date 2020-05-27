@@ -17,7 +17,7 @@ categoriesRouter
         const knexInstance = req.app.get('db')
         CategoriesService.getAll(knexInstance)
             .then(categories => {
-                res.json(folders.map(serializeFolder))
+                res.json(categories.map(serializeCategory))
             })
             .catch(next)
     })
