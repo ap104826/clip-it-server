@@ -8,10 +8,13 @@ const jsonParser = express.json()
 
 const serializeBookmark = bookmark => ({
     id: bookmark.id,
-    name: xss(bookmark.name),
-    content: xss(bookmark.content),
-    category_id: xss(bookmark.caregory_id),
-    modified: xss(bookmark.modified)
+    title: xss(bookmark.title),
+    category_id: bookmark.category_id,
+    thumbnail_url: bookmark.thumbnail_url,
+    description: bookmark.description,
+    is_favorite: bookmark.is_favorite,
+    link: xss(bookmark.link),
+    modified: bookmark.modified
 })
 
 bookmarksRouter
@@ -25,15 +28,13 @@ bookmarksRouter
             .catch(next)
     })
     .post(jsonParser, (req, res, next) => {
-        const { name, content, category_id } = req.body
-        const newBookmark = { name, content, category_id }
+        const { title, thumbnail_url, link, is_favorite, description, category_id } = req.body
+        const newBookmark = { title, thumbnail_url, link, is_favorite, description, category_id }
 
-        for (const [key, value] of Object.entries(newBookmark)) {
-            if (value == null) {
-                return res.status(400).json({
-                    error: { message: `Missing '${key}' in request body` }
-                })
-            }
+        if (!link) {
+            return res.status(400).json({
+                error: { message: `Missing '${key}' in request body` }
+            })
         }
 
         BookmarksService.insertBookmark(
@@ -46,7 +47,6 @@ bookmarksRouter
                     .location(path.posix.join(req.originalUrl, `/${bookmark.id}`))
                     .json(serializeBookmark(bookmark))
             })
-            .catch(next)
     })
 
 bookmarksRouter
@@ -54,7 +54,7 @@ bookmarksRouter
     .all((req, res, next) => {
         BookmarksService.getById(
             req.app.get('db'),
-            req.params.bookmark_id
+            parseInt(req.params.bookmark_id)
         )
             .then(bookmark => {
                 if (!bookmark) {
@@ -73,7 +73,7 @@ bookmarksRouter
     .delete((req, res, next) => {
         BookmarksService.deleteBookmark(
             req.app.get('db'),
-            req.params.bookmark_id
+            parseInt(req.params.bookmark_id)
         )
             .then(numRowsAffected => {
                 res.status(204).end()
@@ -81,20 +81,18 @@ bookmarksRouter
             .catch(next)
     })
     .patch(jsonParser, (req, res, next) => {
-        const { name, content, category_id } = req.body
-        const bookmarkToUpdate = { name, content, category_id }
+        const { title, category_id, is_favorite, description } = req.body
+        const bookmarkToUpdate = { title, category_id, is_favorite, description }
 
-        const numberOfValues = Object.values(bookmarkToUpdate).filter(Boolean).length
-        if (numberOfValues === 0)
+        if (!title) {
             return res.status(400).json({
-                error: {
-                    message: `Request body must contain either 'fullname', 'username', 'password' or 'nickname'`
-                }
+                error: { message: `Missing 'title' in request body` }
             })
+        }
 
         BookmarksService.updateBookmark(
             req.app.get('db'),
-            req.params.bookmark_id,
+            parseInt(req.params.bookmark_id),
             bookmarkToUpdate
         )
             .then(numRowsAffected => {

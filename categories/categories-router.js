@@ -2,6 +2,7 @@ const path = require('path')
 const express = require('express')
 const xss = require('xss')
 const CategoriesService = require('./categories-service')
+const BookmarksService = require('../bookmarks/bookmarks-service')
 const categoriesRouter = express.Router()
 const jsonParser = express.json()
 
@@ -68,14 +69,21 @@ categoriesRouter
         res.json(serializeCategory(res.category))
     })
     .delete((req, res, next) => {
-        CategoriesService.deleteCategory(
+        BookmarksService.removeCategoryFromBookmarks(
             req.app.get('db'),
             req.params.category_id
         )
+        .then(() => {
+            CategoriesService.deleteCategory(
+                req.app.get('db'),
+                req.params.category_id
+            )
             .then(numRowsAffected => {
                 res.status(204).end()
             })
             .catch(next)
+        })
+        .catch(next)
     })
     .patch(jsonParser, (req, res, next) => {
         const { name } = req.body
