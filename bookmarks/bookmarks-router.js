@@ -1,6 +1,7 @@
 const path = require('path')
 const express = require('express')
 const xss = require('xss')
+const metaScraper = require("meta-scraper").default
 const BookmarksService = require('./bookmarks-service')
 
 const bookmarksRouter = express.Router()
@@ -28,8 +29,8 @@ bookmarksRouter
             .catch(next)
     })
     .post(jsonParser, (req, res, next) => {
-        const { title, thumbnail_url, link, is_favorite, description, category_id } = req.body
-        const newBookmark = { title, thumbnail_url, link, is_favorite, description, category_id }
+
+        const { link, category_id } = req.body
 
         if (!link) {
             return res.status(400).json({
@@ -37,17 +38,33 @@ bookmarksRouter
             })
         }
 
-        BookmarksService.insertBookmark(
-            req.app.get('db'),
-            newBookmark
-        )
-            .then(bookmark => {
-                res
-                    .status(201)
-                    .location(path.posix.join(req.originalUrl, `/${bookmark.id}`))
-                    .json(serializeBookmark(bookmark))
-            })
-    })
+        metaScraper(link)
+            .then(function (data) {
+                console.log(data);
+
+                const newBookmark = {
+                    title: data.title,
+                    thumbnail_url: data.image,
+                    link,
+                    description: data.description,
+                    category_id
+                }
+
+                BookmarksService.insertBookmark(
+                    req.app.get('db'),
+                    newBookmark
+                )
+                    .then(bookmark => {
+                        res
+                            .status(201)
+                            .location(path.posix.join(req.originalUrl, `/${bookmark.id}`))
+                            .json(serializeBookmark(bookmark))
+                    })
+            });
+
+
+        
+2    })
 
 bookmarksRouter
     .route('/:bookmark_id')
