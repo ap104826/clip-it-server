@@ -64,7 +64,7 @@ bookmarksRouter
 
 
         
-2    })
+    })
 
 bookmarksRouter
     .route('/:bookmark_id')

@@ -97,6 +97,15 @@ categoriesRouter
                 }
             })
 
+        .put(jsonParser,(req,res, next) => {
+            const { name } = req.body
+            const categoryToUpdate = {name}
+        })
+
+        .put(jsonParser,(req,res, next) => {
+            const {name} = req.bo
+        })
+
         CategoriesService.updateCategory(
             req.app.get('db'),
             req.params.category_id,
