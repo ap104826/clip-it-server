@@ -1,6 +1,7 @@
 const BookmarksService = {
     getAllBookmarks(knex) {
         return knex.select('*').from('bookmarks')
+        .orderBy('modified','desc')
     },
 
     insertBookmark(knex, newBookmark) {

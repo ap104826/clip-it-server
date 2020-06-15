@@ -61,10 +61,8 @@ bookmarksRouter
                             .json(serializeBookmark(bookmark))
                     })
             });
-
-
-        
     })
+    
 
 bookmarksRouter
     .route('/:bookmark_id')
@@ -97,19 +95,21 @@ bookmarksRouter
             })
             .catch(next)
     })
-    .patch(jsonParser, (req, res, next) => {
-        const { title, category_id, is_favorite, description } = req.body
-        const bookmarkToUpdate = { title, category_id, is_favorite, description }
+    .put(jsonParser, (req, res, next) => {
+        const { is_favorite } = req.body
+        const bookmarkToUpdate = { is_favorite }
 
-        if (!title) {
+        const numberOfValues = Object.values(bookmarkToUpdate).filter(Boolean).length
+        if (numberOfValues === 0)
             return res.status(400).json({
-                error: { message: `Missing 'title' in request body` }
+                error: {
+                    message: `Request body must contain 'is_favorite'`
+                }
             })
-        }
 
         BookmarksService.updateBookmark(
             req.app.get('db'),
-            parseInt(req.params.bookmark_id),
+            req.params.bookmark_id,
             bookmarkToUpdate
         )
             .then(numRowsAffected => {
