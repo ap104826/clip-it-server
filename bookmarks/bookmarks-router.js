@@ -62,7 +62,7 @@ bookmarksRouter
                     })
             });
     })
-    
+
 
 bookmarksRouter
     .route('/:bookmark_id')
@@ -99,8 +99,8 @@ bookmarksRouter
         const { is_favorite } = req.body
         const bookmarkToUpdate = { is_favorite }
 
-        const numberOfValues = Object.values(bookmarkToUpdate).filter(Boolean).length
-        if (numberOfValues === 0)
+
+        if (is_favorite !== true && is_favorite !== false)
             return res.status(400).json({
                 error: {
                     message: `Request body must contain 'is_favorite'`
