@@ -25,3 +25,9 @@ Run the tests `npm test`
 When your new project is ready for deployment, add a new Heroku application with `heroku create`. This will make a new git remote called "heroku" and you can then `npm run deploy` which will push to this remote's master branch.
 
 https://github.com/brianc/node-postgres/issues/2009
+
+## Built with
+React, Node(Express)
+
+## Tested with
+Chai, Mocha, Supertest
