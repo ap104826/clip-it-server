@@ -1,13 +1,10 @@
-const app = require('../app')
+const app = require('../test/app')
 
-describe('App', () => {
-const app = require('../app')
-
-describe('App', () => {
+describe('/api/', () => {
     it('GET / responds with 200 containing "Hello, world!"', () => {
         return supertest(app)
-            .get('/')
+            .get('/api/')
             .expect(200, 'Hello, world!')
+    })
 })
-})
-})
+
