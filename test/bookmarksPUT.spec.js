@@ -19,27 +19,41 @@ after('disconnect from db', () => db.destroy());
 before('clean the table', () => db.raw('TRUNCATE bookmarks, categories RESTART IDENTITY CASCADE'));
 afterEach('clean up', () => db.raw('TRUNCATE bookmarks, categories RESTART IDENTITY CASCADE'));
 
-describe(`GET /api/bookmarks`, () => {
+describe(`PUT /api/bookmarks/:bookmark_id`, () => {
     context('Given no bookmarks', () => {
-        it('returns status 200 and an empty array', () => {
+        it('returns error massage', () => {
+            const idToUpdate = 2;
             return supertest(app)
-                .get('/api/bookmarks')
-                .expect(200, [])
+                .patch(`/api/bookmarks/${idToUpdate}`)
+                .expect(404, { error: { message: `bookmark doesn't exist` } })
         })
     })
 
-    context('Given bookmarks in db', () => {
+    context('Given Bookmarks in db', () => {
         const testBookmarks = makeBookmarksArray();
-
-        beforeEach('insert bookmarks', () => {
+        beforeEach('insert data', () => {
             return db
-                .into('bookmarks')
                 .insert(testBookmarks)
+                .into('bookmarks')
         })
-        it('returns 200 and all the bookmarks', () => {
+
+        it('returns 200 and updates bookmark', () => {
+            const bookmarkId = 1;
+            const updatedFields = {
+                id: String(bookmarkId),
+                title: 'update test',
+                is_favorite: false
+            }
+            const expectedBookmark = {
+                ...testBookmarks[bookmarkId - 1],
+                ...updatedFields
+            }
             return supertest(app)
-                .get('/api/bookmarks')
-                .expect(200, testBookmarks)
+                .put(`/api/bookmarks/${bookmarkId}`)
+                .send(updatedFields)
+                .expect(204)
         })
     })
+
+
 })

@@ -40,7 +40,6 @@ bookmarksRouter
 
         metaScraper(link)
             .then(function (data) {
-                console.log(data);
 
                 const newBookmark = {
                     title: data.title,
